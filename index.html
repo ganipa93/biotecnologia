@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Introducción a la biotecnología: historia, sus colores por sector, técnicas clave y un traductor interactivo de ADN a proteína.">
+<title>Código Vivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: cuaderno de laboratorio — columna de lectura a la izquierda, anotaciones en mono, una hebra de ADN como hilo conductor */
+:root {
+  --bg: #F2F6F4;
+  --surface: #FFFFFF;
+  --ink: #12211E;
+  --muted: #4E625D;
+  --line: #CFDCD7;
+  --gfp: #17805A;
+  --cherry: #B92A64;
+  --gfp-soft: #DDF1E7;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --red: #C0392B; --green: #2E8B4F; --white: #8A9A95; --blue: #2468B0; --grey: #6B7372; --yellow: #C08B12;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D1614; --surface: #15211E; --ink: #DCE8E3; --muted: #93A8A1; --line: #2A3A36;
+    --gfp: #5FD39A; --cherry: #F2729F; --gfp-soft: #173328;
+    --red: #EF6B5B; --green: #5CC584; --white: #C9D4D0; --blue: #6AA6EA; --grey: #A2ABAA; --yellow: #E8B84A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D1614; --surface: #15211E; --ink: #DCE8E3; --muted: #93A8A1; --line: #2A3A36;
+  --gfp: #5FD39A; --cherry: #F2729F; --gfp-soft: #173328;
+  --red: #EF6B5B; --green: #5CC584; --white: #C9D4D0; --blue: #6AA6EA; --grey: #A2ABAA; --yellow: #E8B84A;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+img { max-width: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 17px; line-height: 1.6;
+}
+.wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.08; }
+h2 { font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 800; letter-spacing: -0.02em; }
+h3 { font-size: 1.2rem; font-weight: 600; }
+p { margin: 0; }
+.label {
+  font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--muted);
+}
+section { padding-block: clamp(56px, 8vw, 96px); border-top: 1px solid var(--line); }
+.section-head { display: grid; gap: 12px; max-width: 62ch; margin-bottom: 40px; }
+.section-head p { color: var(--muted); }
+
+/* Hero */
+header { padding-block: clamp(48px, 9vw, 104px) clamp(40px, 6vw, 72px); }
+.hero { display: grid; gap: 28px; }
+.hero h1 {
+  font-size: clamp(3.2rem, 11vw, 8.5rem); font-weight: 800; letter-spacing: -0.045em;
+}
+.hero h1 span { color: var(--gfp); }
+.lede { font-size: clamp(1.15rem, 2.2vw, 1.4rem); max-width: 40ch; line-height: 1.45; }
+.strand {
+  margin-top: 12px; overflow-x: auto; padding: 20px 0 8px;
+  font-family: var(--font-mono); font-size: clamp(0.95rem, 2vw, 1.15rem); letter-spacing: 0.08em;
+}
+.strand-row { display: flex; gap: 0; white-space: nowrap; }
+.strand-row .tag { width: 3.6em; flex: none; color: var(--muted); font-size: 0.7em; align-self: center; letter-spacing: 0.05em; }
+.codon { padding: 2px 4px; border-radius: 3px; transition: background .25s, color .25s; }
+.codon.on { background: var(--gfp); color: var(--bg); }
+.bonds { color: var(--line); }
+.aa-row .codon { color: var(--cherry); font-weight: 500; }
+.aa-row .codon.on { background: var(--cherry); color: var(--bg); }
+.strand-note { font-size: 0.85rem; color: var(--muted); margin-top: 8px; max-width: 62ch; }
+
+/* Definición + cronología */
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 56px; align-items: start; }
+.def p + p { margin-top: 16px; }
+.def .big { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.3; font-weight: 600; }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-left: 2px solid var(--line); }
+.timeline li { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: 16px; padding: 14px 0 14px 20px; position: relative; }
+.timeline li::before {
+  content: ""; position: absolute; left: -6px; top: 22px; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--bg); border: 2px solid var(--gfp);
+}
+.timeline .year { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--gfp); font-weight: 500; }
+.timeline strong { font-weight: 600; }
+.timeline p { color: var(--muted); font-size: 0.95rem; }
+
+/* Colores */
+.colors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.color { background: var(--surface); padding: 28px 24px; display: grid; gap: 10px; align-content: start; }
+.swatch { display: flex; align-items: center; gap: 10px; }
+.dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+.color h3 { font-size: 1.35rem; }
+.color p { color: var(--muted); font-size: 0.95rem; }
+.color .ex { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink); }
+
+/* Herramientas */
+.tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 56px; }
+.tool { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: 16px; padding-block: 22px; border-bottom: 1px solid var(--line); }
+.tool .abbr { font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; color: var(--gfp); line-height: 1.1; }
+.tool p { color: var(--muted); font-size: 0.95rem; margin-top: 4px; }
+
+/* Traductor */
+.lab { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: clamp(20px, 4vw, 36px); display: grid; gap: 20px; }
+.lab label { font-weight: 600; }
+.lab textarea {
+  width: 100%; min-height: 96px; resize: vertical; padding: 14px;
+  font-family: var(--font-mono); font-size: 1rem; letter-spacing: 0.06em;
+  background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 4px;
+}
+.lab textarea:focus-visible, button:focus-visible { outline: 2px solid var(--gfp); outline-offset: 2px; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+button {
+  font: 500 0.88rem var(--font-body); cursor: pointer; padding: 8px 14px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+}
+button:hover { border-color: var(--gfp); color: var(--gfp); }
+.out { display: grid; gap: 12px; }
+.protein { font-family: var(--font-mono); font-size: 1.4rem; letter-spacing: 0.18em; color: var(--cherry); word-break: break-all; }
+.chain { overflow-x: auto; }
+.chain-inner { display: flex; gap: 6px; flex-wrap: wrap; }
+.res { font-family: var(--font-mono); font-size: 0.78rem; border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; display: grid; text-align: center; min-width: 3.4em; }
+.res b { font-weight: 500; color: var(--ink); }
+.res span { color: var(--muted); }
+.res.start { border-color: var(--gfp); background: var(--gfp-soft); }
+.res.stop { border-color: var(--cherry); color: var(--cherry); }
+.status { font-size: 0.9rem; color: var(--muted); }
+
+/* Ética */
+.debates { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+.debate { display: grid; gap: 8px; align-content: start; }
+.debate p { color: var(--muted); font-size: 0.95rem; }
+.debate .q { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; color: var(--ink); line-height: 1.3; }
+
+footer { border-top: 1px solid var(--line); padding-block: 32px 48px; color: var(--muted); font-size: 0.85rem; }
+footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+
+@media (max-width: 820px) {
+  .split, .tools, .debates { grid-template-columns: minmax(0, 1fr); }
+  .colors { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .split { gap: 40px; }
+}
+@media (max-width: 520px) {
+  .colors { grid-template-columns: minmax(0, 1fr); }
+  .timeline li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .tool { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+}
+@media (prefers-reduced-motion: reduce) { .codon { transition: none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hero">
+    <p class="label">Ciencia de la vida aplicada</p>
+    <h1>Bio<span>tec</span>nología</h1>
+    <p class="lede">Usar células, enzimas y ADN para curar enfermedades, cultivar alimentos y fabricar materiales. La biología convertida en herramienta.</p>
+    <div class="strand" aria-label="Fragmento del gen de la proteína verde fluorescente, con su hebra complementaria y la proteína resultante">
+      <div class="strand-row" id="row-5"><span class="tag">5'→3'</span></div>
+      <div class="strand-row bonds" id="row-b"><span class="tag"></span></div>
+      <div class="strand-row" id="row-3"><span class="tag">3'←5'</span></div>
+      <div class="strand-row aa-row" id="row-aa"><span class="tag">prot.</span></div>
+    </div>
+    <p class="strand-note">Arriba: los primeros 33 nucleótidos del gen EGFP, la proteína verde fluorescente que se usa en miles de laboratorios para marcar células. Cada triplete (codón) se traduce en un aminoácido.</p>
+  </div>
+</header>
+
+<main>
+  <section id="que-es">
+    <div class="wrap split">
+      <div class="def">
+        <p class="label">Definición</p>
+        <h2 style="margin-block: 12px 24px;">Qué es</h2>
+        <p class="big">Toda aplicación tecnológica que usa sistemas biológicos, organismos vivos o sus derivados para crear o modificar productos y procesos.</p>
+        <p>Así la define el Convenio sobre la Diversidad Biológica de la ONU. Incluye prácticas milenarias como hacer pan o queso, y también técnicas recientes como editar un gen con CRISPR.</p>
+        <p>La diferencia moderna es la precisión. Antes se elegían organismos útiles y se cruzaban. Hoy se lee su ADN, se entiende y se reescribe.</p>
+      </div>
+      <div>
+        <p class="label" style="margin-bottom: 16px;">Cronología</p>
+        <ol class="timeline">
+          <li><span class="year">~6000 a.C.</span><div><strong>Fermentación</strong><p>Levaduras para hacer cerveza, vino y pan en Mesopotamia.</p></div></li>
+          <li><span class="year">1928</span><div><strong>Penicilina</strong><p>Alexander Fleming observa que un hongo frena el crecimiento de bacterias.</p></div></li>
+          <li><span class="year">1953</span><div><strong>Doble hélice</strong><p>Watson y Crick, con los datos de Rosalind Franklin, describen la estructura del ADN.</p></div></li>
+          <li><span class="year">1973</span><div><strong>ADN recombinante</strong><p>Cohen y Boyer insertan un gen ajeno en una bacteria por primera vez.</p></div></li>
+          <li><span class="year">1982</span><div><strong>Insulina humana</strong><p>Primer medicamento producido por bacterias modificadas aprobado para uso humano.</p></div></li>
+          <li><span class="year">1996</span><div><strong>Oveja Dolly</strong><p>Primer mamífero clonado a partir de una célula adulta.</p></div></li>
+          <li><span class="year">2003</span><div><strong>Genoma humano</strong><p>Se completa la secuencia de unos 3.000 millones de pares de bases.</p></div></li>
+          <li><span class="year">2012</span><div><strong>CRISPR-Cas9</strong><p>Doudna y Charpentier muestran cómo cortar ADN en un punto exacto.</p></div></li>
+          <li><span class="year">2020</span><div><strong>Vacunas de ARNm</strong><p>Desarrolladas en menos de un año contra la COVID-19.</p></div></li>
+          <li><span class="year">2023</span><div><strong>Primera terapia CRISPR</strong><p>Se aprueba Casgevy para la anemia falciforme y la beta-talasemia.</p></div></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="colores">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="label">Clasificación</p>
+        <h2>Los colores de la biotecnología</h2>
+        <p>El campo es tan amplio que se divide por colores según el sector. Es una convención informal, pero se usa en universidades y en la industria.</p>
+      </div>
+      <div class="colors">
+        <article class="color">
+          <div class="swatch"><span class="dot" style="background: var(--red)"></span><span class="label">Roja</span></div>
+          <h3>Salud</h3>
+          <p>Medicamentos, vacunas, diagnóstico genético y terapias génicas y celulares.</p>
+          <p class="ex">Ej.: anticuerpos monoclonales</p>
+        </article>
+        <article class="color">
+          <div class="swatch"><span class="dot" style="background: var(--green)"></span><span class="label">Verde</span></div>
+          <h3>Agricultura</h3>
+          <p>Cultivos resistentes a plagas o sequía, biofertilizantes y mejora vegetal.</p>
+          <p class="ex">Ej.: trigo HB4 tolerante a sequía</p>
+        </article>
+        <article class="color">
+          <div class="swatch"><span class="dot" style="background: var(--white); border: 1px solid var(--line)"></span><span class="label">Blanca</span></div>
+          <h3>Industria</h3>
+          <p>Enzimas y microorganismos que fabrican plásticos, combustibles y químicos.</p>
+          <p class="ex">Ej.: enzimas en detergentes</p>
+        </article>
+        <article class="color">
+          <div class="swatch"><span class="dot" style="background: var(--blue)"></span><span class="label">Azul</span></div>
+          <h3>Mar</h3>
+          <p>Compuestos y organismos de océanos y aguas para fármacos, cosméticos y acuicultura.</p>
+          <p class="ex">Ej.: GFP, aislada de una medusa</p>
+        </article>
+        <article class="color">
+          <div class="swatch"><span class="dot" style="background: var(--grey)"></span><span class="label">Gris</span></div>
+          <h3>Ambiente</h3>
+          <p>Biorremediación: bacterias y plantas que limpian suelos y aguas contaminadas.</p>
+          <p class="ex">Ej.: bacterias que degradan petróleo</p>
+        </article>
+        <article class="color">
+          <div class="swatch"><span class="dot" style="background: var(--yellow)"></span><span class="label">Amarilla</span></div>
+          <h3>Alimentos</h3>
+          <p>Fermentación de precisión, probióticos y alimentos con mejor perfil nutricional.</p>
+          <p class="ex">Ej.: cuajo producido por levaduras</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="herramientas">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="label">Caja de herramientas</p>
+        <h2>Las técnicas que lo hacen posible</h2>
+      </div>
+      <div class="tools">
+        <div class="tool"><span class="abbr">PCR</span><div><h3>Reacción en cadena de la polimerasa</h3><p>Copia un fragmento de ADN millones de veces en un par de horas. Base de casi todo diagnóstico molecular.</p></div></div>
+        <div class="tool"><span class="abbr">CRISPR</span><div><h3>Edición genética</h3><p>Una guía de ARN lleva a la enzima Cas9 hasta una secuencia concreta, donde corta. La célula repara el corte y el gen cambia.</p></div></div>
+        <div class="tool"><span class="abbr">NGS</span><div><h3>Secuenciación masiva</h3><p>Lee miles de millones de bases en paralelo. Un genoma humano completo cuesta hoy unos cientos de dólares.</p></div></div>
+        <div class="tool"><span class="abbr">rDNA</span><div><h3>ADN recombinante</h3><p>Se inserta un gen en un plásmido y una bacteria o levadura lo expresa. Así se produce la insulina.</p></div></div>
+        <div class="tool"><span class="abbr">Cultivo</span><div><h3>Cultivo celular</h3><p>Células que crecen en biorreactores para producir anticuerpos, vacunas o tejidos.</p></div></div>
+        <div class="tool"><span class="abbr">In silico</span><div><h3>Bioinformática</h3><p>Algoritmos que analizan secuencias y predicen la forma de las proteínas, como AlphaFold.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="traductor">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="label">Pruébalo</p>
+        <h2>Del ADN a la proteína</h2>
+        <p>Escribe una secuencia de ADN. La célula la lee de tres en tres letras y cada codón se convierte en un aminoácido. El codón ATG marca el inicio y TAA, TAG o TGA el final.</p>
+      </div>
+      <div class="lab">
+        <label for="dna">Secuencia de ADN (A, T, G, C)</label>
+        <textarea id="dna" spellcheck="false" autocomplete="off">ATGGTGAGCAAGGGCGAGGAGCTGTTCACCGGGGTGGTGCCCATCCTGTAA</textarea>
+        <div class="presets" role="group" aria-label="Secuencias de ejemplo">
+          <button type="button" data-seq="ATGGTGAGCAAGGGCGAGGAGCTGTTCACCGGGGTGGTGCCCATCCTGTAA">GFP (inicio)</button>
+          <button type="button" data-seq="ATGGCCCTGTGGATGCGCCTCCTGCCCCTGCTGGCGCTGCTGGCCCTCTGGTGA">Insulina humana (inicio)</button>
+          <button type="button" data-seq="ATGCATCGTGAGTATGCTGTATGGTAA">Mensaje oculto</button>
+        </div>
+        <div class="out" aria-live="polite">
+          <p class="label">Proteína (código de una letra)</p>
+          <p class="protein" id="protein"></p>
+          <div class="chain"><div class="chain-inner" id="chain"></div></div>
+          <p class="status" id="status"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="etica">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="label">Debate</p>
+        <h2>Las preguntas abiertas</h2>
+        <p>Poder reescribir la vida trae decisiones que no son solo técnicas.</p>
+      </div>
+      <div class="debates">
+        <div class="debate"><p class="q">¿Hasta dónde editar embriones humanos?</p><p>Los cambios en la línea germinal se heredan. En 2018 el nacimiento de dos bebés editados en China provocó un rechazo internacional y la condena del investigador.</p></div>
+        <div class="debate"><p class="q">¿Quién accede a las terapias?</p><p>Algunas terapias génicas superan los dos millones de dólares por paciente. El reto es que lleguen a quien las necesita.</p></div>
+        <div class="debate"><p class="q">¿Cómo regular los transgénicos?</p><p>Los países difieren: algunos evalúan el producto final y otros el método usado. Eso cambia qué cultivos se pueden sembrar.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Código Vivo · una introducción a la biotecnología</span>
+    <span>Código genético estándar · 64 codones, 20 aminoácidos</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var B = "TCAG";
+  var AA = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG";
+  var THREE = { A:"Ala",R:"Arg",N:"Asn",D:"Asp",C:"Cys",Q:"Gln",E:"Glu",G:"Gly",H:"His",I:"Ile",L:"Leu",K:"Lys",M:"Met",F:"Phe",P:"Pro",S:"Ser",T:"Thr",W:"Trp",Y:"Tyr",V:"Val","*":"Stop" };
+  var COMP = { A:"T", T:"A", G:"C", C:"G" };
+  function translate(c) { return AA[B.indexOf(c[0]) * 16 + B.indexOf(c[1]) * 4 + B.indexOf(c[2])]; }
+
+  // Hebra del encabezado
+  var hero = "ATGGTGAGCAAGGGCGAGGAGCTGTTCACCGGG";
+  var rows = { s: document.getElementById("row-5"), b: document.getElementById("row-b"), c: document.getElementById("row-3"), a: document.getElementById("row-aa") };
+  var cells = [];
+  for (var i = 0; i < hero.length; i += 3) {
+    var cod = hero.slice(i, i + 3);
+    var set = [];
+    [["s", cod], ["b", "|||"], ["c", cod.split("").map(function (x) { return COMP[x]; }).join("")], ["a", " " + translate(cod) + " "]].forEach(function (p) {
+      var el = document.createElement("span");
+      el.className = "codon";
+      el.textContent = p[1];
+      rows[p[0]].appendChild(el);
+      if (p[0] !== "b") set.push(el);
+    });
+    cells.push(set);
+  }
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var k = 0;
+  function step() {
+    cells.forEach(function (s, j) { s.forEach(function (el) { el.classList.toggle("on", j === k); }); });
+    k = (k + 1) % cells.length;
+  }
+  step();
+  if (!reduce) setInterval(step, 900);
+
+  // Traductor
+  var dna = document.getElementById("dna");
+  var out = document.getElementById("protein");
+  var chain = document.getElementById("chain");
+  var status = document.getElementById("status");
+  function render() {
+    var raw = dna.value.toUpperCase().replace(/U/g, "T");
+    var seq = raw.replace(/[^ATGC]/g, "");
+    var ignored = raw.replace(/[\sATGC]/g, "").length;
+    chain.textContent = "";
+    var start = seq.indexOf("ATG");
+    if (start < 0) {
+      out.textContent = "—";
+      status.textContent = seq.length ? "No hay codón de inicio ATG: la célula no empezaría a traducir." : "Escribe una secuencia para traducirla.";
+      return;
+    }
+    var prot = "", stopped = false;
+    for (var i = start; i + 3 <= seq.length; i += 3) {
+      var c = seq.slice(i, i + 3), a = translate(c);
+      var el = document.createElement("div");
+      el.className = "res" + (i === start ? " start" : "") + (a === "*" ? " stop" : "");
+      el.innerHTML = "<b></b><span></span>";
+      el.firstChild.textContent = c;
+      el.lastChild.textContent = THREE[a];
+      chain.appendChild(el);
+      if (a === "*") { stopped = true; break; }
+      prot += a;
+    }
+    out.textContent = prot || "—";
+    var msg = prot.length + " aminoácidos" + (start > 0 ? ", lectura desde la posición " + (start + 1) : "") + ". ";
+    msg += stopped ? "Termina en un codón de parada." : "Sin codón de parada: la proteína quedaría incompleta.";
+    if (ignored) msg += " Se ignoraron " + ignored + " caracteres que no son bases.";
+    status.textContent = msg;
+  }
+  dna.addEventListener("input", render);
+  document.querySelectorAll("[data-seq]").forEach(function (b) {
+    b.addEventListener("click", function () { dna.value = b.getAttribute("data-seq"); render(); });
+  });
+  render();
+})();
+</script>
+</body>
+</html>
